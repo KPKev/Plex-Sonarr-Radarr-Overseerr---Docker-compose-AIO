@@ -1,0 +1,89 @@
+version: "3.8"
+services:
+  plex:
+    image: linuxserver/plex:latest
+    container_name: plex
+    environment:
+      - PUID=1026      # Replace with your Synology UID if different
+      - PGID=100       # Replace with your Synology GID if different
+      - TZ=America/Chicago
+      # - PLEX_CLAIM=your_claim_token_here   # Add your claim token below!
+    volumes:
+      - /volume1/docker/plex/configs:/config         # Configs on SSD
+      - /volume1/docker/plex:/plex                   # Library/metadata on SSD
+      - /volume2/media/tv:/data/tv                   # TV shows on HDD
+      - /volume2/media/movies:/data/movies           # Movies on HDD
+      - /volume1/docker/scripts:/scripts    # Scripts volume
+    ports:
+      - "32400:32400"
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1026
+      - PGID=100
+      - TZ=America/Chicago
+    volumes:
+      - /volume1/docker/sonarr/configs:/config
+      - /volume2/media/tv:/tv
+      - /volume2/media/downloads:/downloads
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1026
+      - PGID=100
+      - TZ=America/Chicago
+    volumes:
+      - /volume1/docker/radarr/configs:/config
+      - /volume2/media/movies:/movies
+      - /volume2/media/downloads:/downloads
+      - /volume1/docker/scripts:/scripts    # Scripts volume
+      
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+
+  sabnzbd:
+    build:
+      context: .
+      dockerfile: sabnzbd.Dockerfile
+    container_name: sabnzbd
+    environment:
+      - PUID=1026
+      - PGID=100
+      - TZ=Etc/UTC
+      - SONARR_API_KEY="d1684e618f71469fb12d0c4d98f6f4bc" # Add your Sonarr API key here
+      - RADARR_API_KEY="9fc78fa0ea384574a014e06e9c58a90c" # Add your Radarr API key here
+      # Optional: Uncomment and set if your service URLs are different
+      # - SONARR_URL=http://your_sonarr_ip:8989
+      # - RADARR_URL=http://your_radarr_ip:7878
+    volumes:
+      - /volume1/docker/sabnzbd/configs:/config
+      - /volume2/media/downloads:/downloads
+      - /volume1/docker/scripts:/scripts    # Scripts volume
+     
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  overseerr:
+    image: linuxserver/overseerr:latest
+    container_name: overseerr
+    environment:
+      - PUID=1026
+      - PGID=100
+      - TZ=America/Chicago
+    volumes:
+      - /volume1/docker/overseerr/config:/config
+    ports:
+      - "5055:5055"
+    restart: unless-stopped
