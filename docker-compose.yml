@@ -87,3 +87,17 @@ services:
     ports:
       - "5055:5055"
     restart: unless-stopped
+
+  tautulli:
+    image: linuxserver/tautulli:latest
+    container_name: tautulli
+    environment:
+      - PUID=1026
+      - PGID=100
+      - TZ=America/Chicago
+    volumes:
+      - /volume1/docker/tautulli/configs:/config
+      # - /volume1/docker/plex/configs/Library/Application Support/Plex Media Server/Logs:/plex_logs:ro
+    ports:
+      - "8181:8181"
+    restart: unless-stopped
